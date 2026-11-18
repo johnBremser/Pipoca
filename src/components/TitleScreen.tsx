@@ -9,6 +9,7 @@ import {
   VolumeX,
 } from 'lucide-react';
 import React, {useEffect} from 'react';
+import titleHeroBackdrop from '../assets/images/title_capybara_hero_1795012504331.jpg';
 import {soundEngine} from '../game/audio';
 import type {DifficultyMode} from '../game/types';
 import {PWAInstallButton} from './PWAInstallButton';
@@ -50,7 +51,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
     <div className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-gradient-to-br from-sky-400 via-sky-300 to-emerald-300">
       {/* Illustrated Key-Art Backdrop */}
       <img
-        src="/src/assets/images/title_capybara_hero_1795012504331.jpg"
+        src={titleHeroBackdrop}
         alt="Pipoca, a Capivara Saltitante pulando sobre a lagoa"
         referrerPolicy="no-referrer"
         className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
