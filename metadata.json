@@ -1,0 +1,8 @@
+{
+  "name": "Pipoca, a Capivara Saltitante",
+  "description": "Jogo de plataforma 2D infantil com a capivara Pipoca, 8 fases com caminhos múltiplos, inimigos aleatórios, chefões e controles táteis para tablets e celulares Android.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
