@@ -1,5 +1,5 @@
 export interface DialogueStep {
-  speaker: 'pipoca' | 'baby' | 'boss';
+  speaker: 'pipoca' | 'baby' | 'boss' | 'oswaldao';
   speakerName: string;
   text: string;
   mood: 'determined' | 'happy' | 'hurt' | 'confess';
@@ -275,21 +275,27 @@ export const POST_BOSS_CUTSCENES: Record<number, PostBossCutscene> = {
         mood: 'happy',
       },
       {
-        speaker: 'pipoca',
-        speakerName: 'Pipoca',
-        text: 'Missão cumprida! Agora todos os 8 filhotinhos estão juntos comigo de novo — e você aprendeu a lição, Barão Raposão!',
-        mood: 'determined',
-      },
-      {
         speaker: 'boss',
         speakerName: 'Barão Raposão',
-        text: 'Ai, ai, minha cartola! Desculpe, Dona Pipoca... prometo que nunca mais mexo com nenhuma capivarinha!',
+        text: 'Ai, ai, minha cartola! Desculpe, Dona Pipoca e Seu Oswaldão... prometo que nunca mais mexo com nenhuma capivarinha!',
         mood: 'hurt',
+      },
+      {
+        speaker: 'oswaldao',
+        speakerName: 'Papai Oswaldão',
+        text: 'Mandou bem demais, Pipoca! Agora todos os nossos 8 filhotinhos estão salvos e protegidos com a gente!',
+        mood: 'happy',
+      },
+      {
+        speaker: 'pipoca',
+        speakerName: 'Pipoca',
+        text: 'Finalmente conseguimos! Agora a família toda reunida vai se juntar à Liz para comemorar com muita festa e tangerina!',
+        mood: 'happy',
       },
       {
         speaker: 'baby',
         speakerName: 'Todos os 8 Filhotinhos',
-        text: 'Viva a Mamãe Pipoca! Vamos comemorar com muita tangerina na Lagoa das Laranjas!',
+        text: 'Viva a Mamãe Pipoca, viva o Papai Oswaldão e viva a nossa amiga Liz!',
         mood: 'happy',
       },
     ],

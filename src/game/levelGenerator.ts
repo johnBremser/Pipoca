@@ -11,6 +11,7 @@ import type {
   LevelData,
   Platform,
   SlopeRamp,
+  SupportStation,
 } from './types';
 import {getWorldConfig} from './worlds';
 
@@ -75,6 +76,7 @@ export function generateLevel(
   const crates: BreakableCrate[] = [];
   const collectibles: Collectible[] = [];
   const checkpoints: Checkpoint[] = [];
+  const supportStations: SupportStation[] = [];
   const enemies: Enemy[] = [];
 
   let uid = 0;
@@ -175,6 +177,20 @@ export function generateLevel(
   });
   addTangerineArc(230, floorY - 46, 5, 56, 36);
 
+  supportStations.push({
+    id: nextId('oswaldao'),
+    x: 38,
+    y: floorY,
+    kind: 'start',
+    message:
+      stageId === 1
+        ? 'Vai, Pipoca! A Liz conta com a gente!'
+        : `Força, Pipoca! Vamos salvar ${world.babyName}!`,
+    heals: 0,
+    cheered: false,
+    cheerTimer: stageId === 1 ? 4.0 : 0,
+  });
+
   // Build 3 Acts with BIOME-SPECIFIC ARCHITECTURE per Stage 1..8!
   for (let act = 1; act <= 3; act++) {
     const actStart = (act - 1) * actLength;
@@ -208,6 +224,19 @@ export function generateLevel(
         kind: 'heart',
         collected: false,
         bobPhase: 0,
+      });
+      supportStations.push({
+        id: nextId('oswaldao'),
+        x: actStart + 185,
+        y: floorY,
+        kind: 'act',
+        message:
+          act === 2
+            ? 'Papai Oswaldão na torcida! Toma força!'
+            : 'Quase lá! Pelos filhotinhos e pela Liz!',
+        heals: 2,
+        cheered: false,
+        cheerTimer: 0,
       });
     } else {
       checkpoints.push({
@@ -781,6 +810,18 @@ export function generateLevel(
     route: 'boss',
   });
 
+  supportStations.push({
+    id: nextId('oswaldao'),
+    x: bossGateX - 105,
+    y: floorY,
+    kind: 'boss_prep',
+    message: 'Oswaldão tá aqui! Energia máxima pro chefão!',
+    heals: 6,
+    givesShield: mode === 'pequenos',
+    cheered: false,
+    cheerTimer: 0,
+  });
+
   return {
     world,
     seed,
@@ -797,6 +838,7 @@ export function generateLevel(
     crates,
     collectibles,
     checkpoints,
+    supportStations,
     enemies,
     heartFountainX: bossGateX - 135,
     heartFountainY: floorY,

@@ -14,6 +14,7 @@ import {
   stopPortugueseSpeech,
 } from '../game/cutscenes';
 import type {BossKind, WorldConfig} from '../game/types';
+import {OswaldaoSvgGroup} from './OswaldaoSvg';
 
 interface PostBossCutsceneProps {
   world: WorldConfig;
@@ -31,13 +32,16 @@ export const PostBossCutscene: React.FC<PostBossCutsceneProps> = ({
   const script = POST_BOSS_CUTSCENES[world.id] ?? POST_BOSS_CUTSCENES[1];
   const [stepIdx, setStepIdx] = useState(0);
   const currentStep = script.steps[stepIdx];
+  const isFinale = world.id === 8;
 
   useEffect(() => {
     const pitch =
       currentStep.speaker === 'baby'
         ? 1.35
+        : currentStep.speaker === 'oswaldao'
+        ? 0.78
         : currentStep.speaker === 'boss'
-        ? 0.85
+        ? 0.88
         : 1.1;
     speakPortuguese(currentStep.text, voiceEnabled, pitch);
     return () => stopPortugueseSpeech();
@@ -56,21 +60,21 @@ export const PostBossCutscene: React.FC<PostBossCutsceneProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex flex-col justify-between overflow-hidden p-4 sm:p-7"
+      className="fixed inset-0 z-40 flex flex-col justify-between overflow-y-auto p-3 sm:p-6 landscape-short:py-2 landscape-short:px-4"
       style={{
         background: `linear-gradient(180deg, ${world.skyTop} 0%, ${world.skyBottom} 65%, ${world.hillNear} 100%)`,
       }}
     >
       {/* Top Bar: Voice Toggle + Timeline Dots + Skip */}
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 pt-safe">
-        <div className="flex items-center justify-between gap-3">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-2.5 landscape-short:gap-1.5 pt-safe shrink-0">
+        <div className="flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={() => {
               soundEngine.unlock();
               onToggleVoice();
             }}
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-2xl bg-white/90 px-4 py-2 font-display text-xs sm:text-sm font-bold text-slate-800 shadow-md active:scale-95 whitespace-nowrap shrink-0"
+            className="inline-flex min-h-[44px] landscape-short:min-h-[38px] items-center gap-2 rounded-2xl bg-white/90 px-3.5 py-2 landscape-short:py-1.5 font-display text-xs sm:text-sm font-bold text-slate-800 shadow-md active:scale-95 whitespace-nowrap shrink-0"
           >
             {voiceEnabled ? (
               <Volume2 className="h-4 w-4 text-emerald-600" />
@@ -80,8 +84,8 @@ export const PostBossCutscene: React.FC<PostBossCutsceneProps> = ({
             <span>{voiceEnabled ? 'Voz: Ligada' : 'Voz: Desligada'}</span>
           </button>
 
-          <div className="hidden sm:block rounded-2xl bg-slate-950/60 px-4 py-1.5 font-display text-sm font-bold text-white">
-            {world.id === 8
+          <div className="hidden sm:block rounded-2xl bg-slate-950/60 px-4 py-1.5 landscape-short:py-1 font-display text-sm landscape-short:text-xs font-bold text-white truncate max-w-xs">
+            {isFinale
               ? 'Grande Final na Festa da Lagoa!'
               : `Resgate de ${world.babyName} · ${world.name}`}
           </div>
@@ -92,7 +96,7 @@ export const PostBossCutscene: React.FC<PostBossCutsceneProps> = ({
               stopPortugueseSpeech();
               onFinish();
             }}
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-2xl bg-white/90 px-4 py-2 font-display text-xs sm:text-sm font-bold text-slate-800 shadow-md active:scale-95 whitespace-nowrap shrink-0"
+            className="inline-flex min-h-[44px] landscape-short:min-h-[38px] items-center gap-2 rounded-2xl bg-white/90 px-3.5 py-2 landscape-short:py-1.5 font-display text-xs sm:text-sm font-bold text-slate-800 shadow-md active:scale-95 whitespace-nowrap shrink-0"
           >
             <span>Pular</span>
             <SkipForward className="h-4 w-4" />
@@ -112,46 +116,36 @@ export const PostBossCutscene: React.FC<PostBossCutsceneProps> = ({
         </div>
       </div>
 
-      {/* Animated Cartoon Stage */}
-      <div className="mx-auto my-auto flex w-full max-w-4xl flex-col items-center gap-4">
-        {/* Large Cartoon Speech Bubble */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={stepIdx}
-            initial={{opacity: 0, y: -10, scale: 0.96}}
-            animate={{opacity: 1, y: 0, scale: 1}}
-            exit={{opacity: 0, y: 8}}
-            transition={{duration: 0.25}}
-            className="relative w-full max-w-2xl rounded-3xl border-4 border-slate-900 bg-white p-5 sm:p-6 shadow-2xl"
+      {/* Responsive Stage: Stacked in portrait, 2-Column side-by-side on short phone landscape */}
+      <div className="mx-auto my-auto grid w-full max-w-5xl grid-cols-1 items-center gap-3 py-2 landscape-short:grid-cols-[1.12fr_0.88fr] landscape-short:gap-4 landscape-short:py-1">
+        {/* Left / Top: Animated Characters SVG Scene */}
+        <div className="w-full overflow-hidden rounded-3xl border-4 border-white/90 bg-white/20 shadow-xl">
+          <svg
+            viewBox="0 0 760 270"
+            preserveAspectRatio="xMidYMid meet"
+            className="h-44 w-full sm:h-60 landscape-short:h-[min(64dvh,235px)]"
           >
-            <div className="flex items-center justify-between gap-2">
-              <span
-                className={`font-display text-sm sm:text-base font-bold ${
-                  currentStep.speaker === 'pipoca'
-                    ? 'text-orange-600'
-                    : currentStep.speaker === 'baby'
-                    ? 'text-emerald-600'
-                    : 'text-violet-700'
-                }`}
-              >
-                {currentStep.speakerName}
-              </span>
-              <span className="text-xs font-bold text-slate-400 tabular-nums">
-                {stepIdx + 1}/{script.steps.length}
-              </span>
-            </div>
-            <p className="mt-1.5 font-display text-lg sm:text-2xl font-bold leading-snug text-slate-900">
-              “{currentStep.text}”
-            </p>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Animated Characters SVG Scene */}
-        <div className="w-full max-w-3xl overflow-hidden rounded-3xl border-4 border-white/90 bg-white/20 shadow-xl">
-          <svg viewBox="0 0 760 270" className="h-44 w-full sm:h-60">
             {/* Biome ground */}
             <rect x="0" y="210" width="760" height="60" fill={world.groundTop} />
             <rect x="0" y="226" width="760" height="44" fill={world.groundFill} />
+
+            {/* Finale only: Papai Oswaldão joins Pipoca & all rescued babies! */}
+            {isFinale && (
+              <motion.g
+                initial={{x: -90, opacity: 0}}
+                animate={{
+                  x: 0,
+                  opacity: 1,
+                  y: currentStep.speaker === 'oswaldao' ? [0, -12, 0] : [0, -4, 0],
+                }}
+                transition={{
+                  x: {duration: 0.6},
+                  y: {repeat: Infinity, duration: 1.1},
+                }}
+              >
+                <OswaldaoSvgGroup transform="translate(88, 178) scale(0.76)" />
+              </motion.g>
+            )}
 
             {/* Left: Hero Pipoca */}
             <motion.g
@@ -161,7 +155,7 @@ export const PostBossCutscene: React.FC<PostBossCutsceneProps> = ({
                   : {y: [0, -3, 0]}
               }
               transition={{repeat: Infinity, duration: 1.2}}
-              transform="translate(150, 178)"
+              transform={isFinale ? 'translate(210, 180) scale(0.92)' : 'translate(150, 178)'}
             >
               <ellipse cx="0" cy="0" rx="52" ry="36" fill="#B47644" stroke="#452512" strokeWidth="4.5" />
               <circle cx="40" cy="-22" r="28" fill="#B47644" stroke="#452512" strokeWidth="4.5" />
@@ -172,7 +166,7 @@ export const PostBossCutscene: React.FC<PostBossCutsceneProps> = ({
               <ellipse cx="45" cy="-68" rx="8" ry="4" transform="rotate(-25 45 -68)" fill="#22C55E" />
             </motion.g>
 
-            {/* Middle-Left: Rescued Baby Capybara (or group in Stage 8!) */}
+            {/* Middle: Rescued Baby Capybara */}
             <motion.g
               animate={
                 currentStep.speaker === 'baby'
@@ -180,7 +174,7 @@ export const PostBossCutscene: React.FC<PostBossCutsceneProps> = ({
                   : {y: [0, -5, 0]}
               }
               transition={{repeat: Infinity, duration: 0.95, delay: 0.15}}
-              transform="translate(295, 195)"
+              transform={isFinale ? 'translate(345, 196)' : 'translate(295, 195)'}
             >
               <ellipse cx="0" cy="0" rx="26" ry="20" fill="#C08552" stroke="#452512" strokeWidth="3.5" />
               <circle cx="-13" cy="-16" r="6" fill="#8C522B" stroke="#452512" strokeWidth="2.5" />
@@ -198,10 +192,14 @@ export const PostBossCutscene: React.FC<PostBossCutsceneProps> = ({
                   : {y: [0, 3, 0]}
               }
               transition={{repeat: Infinity, duration: 1.4}}
-              style={{transformOrigin: '560px 180px'}}
-              transform="translate(560, 175)"
+              style={{transformOrigin: '585px 180px'}}
+              transform={isFinale ? 'translate(590, 175)' : 'translate(560, 175)'}
             >
-              <DefeatedBossAvatar kind={world.boss.kind} primary={world.boss.primaryColor} secondary={world.boss.secondaryColor} />
+              <DefeatedBossAvatar
+                kind={world.boss.kind}
+                primary={world.boss.primaryColor}
+                secondary={world.boss.secondaryColor}
+              />
               {/* Cute White X-Bandage */}
               <g transform="translate(-12, -55) rotate(-12)">
                 <rect x="-18" y="-7" width="36" height="14" rx="4" fill="#FFFFFF" stroke="#94A3B8" strokeWidth="2" />
@@ -224,31 +222,64 @@ export const PostBossCutscene: React.FC<PostBossCutsceneProps> = ({
             </motion.g>
           </svg>
         </div>
-      </div>
 
-      {/* Bottom Advance CTA */}
-      <div className="mx-auto flex w-full max-w-md justify-center pb-safe">
-        <button
-          type="button"
-          onClick={handleNext}
-          className="inline-flex min-h-[58px] w-full items-center justify-center gap-3 rounded-3xl border-b-4 border-emerald-700 bg-emerald-500 px-8 py-3 font-display text-xl font-bold text-white shadow-xl transition-transform active:scale-95 hover:bg-emerald-400"
-        >
-          {stepIdx < script.steps.length - 1 ? (
-            <>
-              <span>Continuar Conversa</span>
-              <ArrowRight className="h-6 w-6 stroke-[3]" />
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-6 w-6" />
-              <span>
-                {script.nextStageName
-                  ? `Seguir para ${script.nextStageName}!`
-                  : 'Comemorar Grande Vitória!'}
-              </span>
-            </>
-          )}
-        </button>
+        {/* Right / Bottom: Speech Bubble + Advance CTA (always reachable!) */}
+        <div className="flex flex-col gap-3 landscape-short:gap-2.5 pb-safe">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={stepIdx}
+              initial={{opacity: 0, y: -8, scale: 0.97}}
+              animate={{opacity: 1, y: 0, scale: 1}}
+              exit={{opacity: 0, y: 6}}
+              transition={{duration: 0.22}}
+              className="relative w-full rounded-3xl border-4 border-slate-900 bg-white p-4 sm:p-6 landscape-short:p-3.5 shadow-2xl landscape-short:max-h-[calc(100dvh-165px)] landscape-short:overflow-y-auto"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span
+                  className={`font-display text-sm sm:text-base font-bold ${
+                    currentStep.speaker === 'pipoca'
+                      ? 'text-orange-600'
+                      : currentStep.speaker === 'oswaldao'
+                      ? 'text-sky-700'
+                      : currentStep.speaker === 'baby'
+                      ? 'text-emerald-600'
+                      : 'text-violet-700'
+                  }`}
+                >
+                  {currentStep.speakerName}
+                </span>
+                <span className="text-xs font-bold text-slate-400 tabular-nums">
+                  {stepIdx + 1}/{script.steps.length}
+                </span>
+              </div>
+              <p className="mt-1.5 font-display text-base sm:text-xl landscape-short:text-sm font-bold leading-snug text-slate-900">
+                “{currentStep.text}”
+              </p>
+            </motion.div>
+          </AnimatePresence>
+
+          <button
+            type="button"
+            onClick={handleNext}
+            className="inline-flex min-h-[54px] landscape-short:min-h-[46px] w-full items-center justify-center gap-3 rounded-3xl border-b-4 border-emerald-700 bg-emerald-500 px-6 py-3 landscape-short:py-2 font-display text-lg sm:text-xl landscape-short:text-base font-bold text-white shadow-xl transition-transform active:scale-95 hover:bg-emerald-400"
+          >
+            {stepIdx < script.steps.length - 1 ? (
+              <>
+                <span>Continuar Conversa</span>
+                <ArrowRight className="h-6 w-6 landscape-short:h-5 landscape-short:w-5 stroke-[3]" />
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-6 w-6 landscape-short:h-5 landscape-short:w-5" />
+                <span>
+                  {script.nextStageName
+                    ? `Seguir para ${script.nextStageName}!`
+                    : 'Comemorar Grande Vitória!'}
+                </span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

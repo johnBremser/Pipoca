@@ -575,6 +575,34 @@ export class GameEngine {
       }
     }
 
+    for (const st of this.level.supportStations) {
+      if (st.cheerTimer > 0) {
+        st.cheerTimer = Math.max(0, st.cheerTimer - dt);
+      }
+      if (
+        !st.cheered &&
+        Math.abs(p.x + p.w * 0.5 - st.x) < 64 &&
+        Math.abs(p.y + p.h - st.y) < 82
+      ) {
+        st.cheered = true;
+        st.cheerTimer = 4.5;
+        if (st.heals > 0) {
+          p.hearts = Math.min(p.maxHearts, p.hearts + st.heals);
+          p.happyTimer = 0.7;
+          soundEngine.playHeart();
+          this.spawnBurst(st.x, st.y - 54, 16, '#FB7185', 'star');
+          this.addFloatingText(st.x, st.y - 98, 'Força do Oswaldão!', '#0284C7');
+        } else {
+          soundEngine.playCollect(4);
+          this.spawnBurst(st.x, st.y - 54, 12, '#FACC15', 'star');
+        }
+        if (st.givesShield && p.shieldTimer < 8) {
+          p.shieldTimer = 10;
+          this.spawnBurst(st.x, st.y - 68, 12, '#38BDF8', 'star');
+        }
+      }
+    }
+
     for (const item of this.level.collectibles) {
       if (item.collected) continue;
       const dx = p.x + p.w * 0.5 - item.x;

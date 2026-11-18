@@ -14,6 +14,7 @@ import type {
   Platform,
   PlayerState,
   SlopeRamp,
+  SupportStation,
   WorldConfig,
 } from './types';
 
@@ -126,10 +127,14 @@ export function renderGameScene(
     drawHeartFountain(ctx, level.heartFountainX, level.heartFountainY, time);
   }
 
-  // 8. Checkpoints
+  // 8. Checkpoints & Papai Oswaldão Support Stations
   for (const cp of level.checkpoints) {
     if (cp.x < cameraX - 100 || cp.x > cameraX + vW + 100) continue;
     drawCheckpoint(ctx, cp, time);
+  }
+  for (const st of level.supportStations) {
+    if (st.x < cameraX - 180 || st.x > cameraX + vW + 180) continue;
+    drawOswaldaoStation(ctx, st, player, time);
   }
 
   // 9. Breakable Crates
@@ -652,6 +657,156 @@ function drawCheckpoint(
   ctx.textAlign = 'center';
   ctx.fillStyle = '#1E293B';
   ctx.fillText(cp.label, cp.x, cp.y - 114);
+  ctx.restore();
+}
+
+function drawOswaldaoStation(
+  ctx: CanvasRenderingContext2D,
+  st: SupportStation,
+  player: PlayerState,
+  time: number
+) {
+  const near = Math.abs(player.x + player.w * 0.5 - st.x) < 260;
+  const bounce = st.cheerTimer > 0 ? Math.abs(Math.sin(time * 9)) * 7 : Math.sin(time * 3) * 2;
+  const cx = st.x;
+  const cy = st.y - 34 - bounce;
+
+  ctx.save();
+  // Ground shadow
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.22)';
+  ctx.beginPath();
+  ctx.ellipse(cx, st.y - 2, 34, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.translate(cx, cy);
+
+  // Strong dad capybara torso
+  ctx.fillStyle = '#8D5524';
+  ctx.strokeStyle = '#3B1D0A';
+  ctx.lineWidth = 3.5;
+  ctx.beginPath();
+  ctx.ellipse(0, 4, 34, 26, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Warm chest
+  ctx.fillStyle = '#C68642';
+  ctx.beginPath();
+  ctx.ellipse(-4, 9, 17, 15, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Blue dad bandana
+  ctx.fillStyle = '#0284C7';
+  ctx.strokeStyle = '#0C4A6E';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(-22, -8);
+  ctx.quadraticCurveTo(-2, 2, 16, -8);
+  ctx.lineTo(10, 4);
+  ctx.quadraticCurveTo(-2, 10, -16, 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Flexing cheering arm
+  const armLift = st.cheerTimer > 0 ? Math.sin(time * 11) * 5 : 0;
+  ctx.strokeStyle = '#3B1D0A';
+  ctx.lineWidth = 12;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(22, 0);
+  ctx.quadraticCurveTo(36, -12 - armLift, 28, -26 - armLift);
+  ctx.stroke();
+  ctx.strokeStyle = '#8D5524';
+  ctx.lineWidth = 7;
+  ctx.beginPath();
+  ctx.moveTo(22, 0);
+  ctx.quadraticCurveTo(36, -12 - armLift, 28, -26 - armLift);
+  ctx.stroke();
+
+  // Big head (facing left/towards incoming Pipoca or right at start)
+  const dir = st.kind === 'start' ? 1 : -1;
+  ctx.save();
+  ctx.scale(dir, 1);
+
+  ctx.fillStyle = '#8D5524';
+  ctx.strokeStyle = '#3B1D0A';
+  ctx.lineWidth = 3.5;
+  ctx.beginPath();
+  ctx.arc(16, -20, 21, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Ear
+  ctx.fillStyle = '#6B3E17';
+  ctx.beginPath();
+  ctx.arc(3, -36, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Snout
+  ctx.fillStyle = '#C68642';
+  ctx.beginPath();
+  ctx.ellipse(27, -15, 11, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#2A170B';
+  ctx.beginPath();
+  ctx.ellipse(34, -18, 3.5, 2.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Smile
+  ctx.strokeStyle = '#2A170B';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(24, -11, 5, 0.15, Math.PI - 0.3);
+  ctx.stroke();
+
+  // Cool Sunglasses with gold frame & white shine
+  ctx.fillStyle = '#0F172A';
+  ctx.strokeStyle = '#FACC15';
+  ctx.lineWidth = 2;
+  drawRoundedRect(ctx, 8, -29, 13, 9, 2.5);
+  ctx.fill();
+  ctx.stroke();
+  drawRoundedRect(ctx, 22, -29, 12, 9, 2.5);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(11, -22);
+  ctx.lineTo(16, -27);
+  ctx.moveTo(25, -22);
+  ctx.lineTo(30, -27);
+  ctx.stroke();
+
+  ctx.restore();
+
+  // Name badge & cheer speech bubble
+  ctx.font = '700 12px Fredoka, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#0C4A6E';
+  ctx.fillText('Oswaldão', 0, -52);
+
+  if (near || st.cheerTimer > 0) {
+    const text = st.message;
+    ctx.font = '700 13px Nunito, sans-serif';
+    const textW = Math.min(260, ctx.measureText(text).width + 24);
+    const bx = -textW * 0.5;
+    const by = -98;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#0284C7';
+    ctx.lineWidth = 2.5;
+    drawRoundedRect(ctx, bx, by, textW, 30, 12);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#0F172A';
+    ctx.fillText(text, 0, by + 19);
+  }
+
   ctx.restore();
 }
 

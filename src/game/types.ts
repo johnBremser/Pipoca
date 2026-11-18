@@ -283,6 +283,18 @@ export interface FloatingText {
   maxLife: number;
 }
 
+export interface SupportStation {
+  id: string;
+  x: number;
+  y: number;
+  kind: 'start' | 'act' | 'boss_prep';
+  message: string;
+  heals: number;
+  givesShield?: boolean;
+  cheered: boolean;
+  cheerTimer: number;
+}
+
 export interface LevelData {
   world: WorldConfig;
   seed: number;
@@ -299,6 +311,7 @@ export interface LevelData {
   crates: BreakableCrate[];
   collectibles: Collectible[];
   checkpoints: Checkpoint[];
+  supportStations: SupportStation[];
   enemies: Enemy[];
   heartFountainX: number;
   heartFountainY: number;

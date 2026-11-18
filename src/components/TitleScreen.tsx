@@ -48,20 +48,20 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
   }, [onStart]);
 
   return (
-    <div className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-gradient-to-br from-sky-400 via-sky-300 to-emerald-300">
+    <div className="relative flex h-full w-full flex-col justify-between overflow-y-auto overflow-x-hidden bg-gradient-to-br from-sky-400 via-sky-300 to-emerald-300">
       {/* Illustrated Key-Art Backdrop */}
       <img
         src={titleHeroBackdrop}
         alt="Pipoca, a Capivara Saltitante pulando sobre a lagoa"
         referrerPolicy="no-referrer"
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+        className="pointer-events-none fixed inset-0 h-full w-full object-cover object-center"
       />
 
       {/* Directional contrast scrim on left negative space */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-sky-950/75 via-sky-900/40 to-transparent" />
+      <div className="pointer-events-none fixed inset-0 bg-gradient-to-r from-sky-950/75 via-sky-900/40 to-transparent" />
 
       {/* Top utility actions */}
-      <div className="relative z-10 flex items-center justify-end gap-2.5 p-4 pt-safe px-safe">
+      <div className="relative z-10 flex items-center justify-end gap-2.5 p-4 landscape-short:py-2 pt-safe px-safe shrink-0">
         <PWAInstallButton />
 
         <button
@@ -104,9 +104,9 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
       </div>
 
       {/* Left-aligned Title Lockup + Mode Selector + Start CTA over calm negative space */}
-      <div className="relative z-10 my-auto flex w-full max-w-xl flex-col gap-5 px-5 sm:px-10">
+      <div className="relative z-10 my-auto flex w-full max-w-xl flex-col gap-5 landscape-short:gap-2.5 px-5 sm:px-10">
         {/* Bespoke SVG Title Lockup */}
-        <div className="max-w-md">
+        <div className="max-w-md landscape-short:max-w-xs">
           <svg
             viewBox="0 0 460 155"
             className="h-auto w-full drop-shadow-lg"

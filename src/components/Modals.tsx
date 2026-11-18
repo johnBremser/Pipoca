@@ -11,6 +11,7 @@ import {
 import {motion} from 'motion/react';
 import React from 'react';
 import type {WorldConfig} from '../game/types';
+import {OswaldaoSvgGroup} from './OswaldaoSvg';
 
 interface PauseModalProps {
   world: WorldConfig;
@@ -32,7 +33,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   onToggleTouchControls,
 }) => (
   <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/65 p-4">
-    <div className="w-full max-w-md rounded-3xl border-4 border-white bg-white p-6 text-slate-900 shadow-2xl">
+    <div className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 border-white bg-white p-6 text-slate-900 shadow-2xl">
       <h2 className="font-display text-2xl font-bold text-center text-slate-900">
         Jogo Pausado
       </h2>
@@ -127,9 +128,21 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
         initial={{scale: 0.9, opacity: 0, y: 16}}
         animate={{scale: 1, opacity: 1, y: 0}}
         transition={{duration: 0.3, ease: [0.16, 1, 0.3, 1]}}
-        className="w-full max-w-lg rounded-3xl border-4 border-amber-300 bg-white p-6 text-center text-slate-900 shadow-2xl"
+        className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-3xl border-4 border-amber-300 bg-white p-5 sm:p-6 text-center text-slate-900 shadow-2xl"
       >
-        <div className="mx-auto flex items-center justify-center gap-4">
+        <div className="mx-auto flex items-center justify-center gap-3">
+          {isFinal && (
+            <motion.svg
+              viewBox="0 0 180 140"
+              className="h-16 w-24"
+              animate={{y: [0, -7, 0]}}
+              transition={{repeat: Infinity, duration: 1.3, ease: 'easeInOut'}}
+              aria-label="Papai Oswaldão"
+            >
+              <OswaldaoSvgGroup transform="translate(80, 92) scale(0.72)" />
+            </motion.svg>
+          )}
+
           <motion.div
             animate={{y: [0, -8, 0]}}
             transition={{repeat: Infinity, duration: 1.4, ease: 'easeInOut'}}
@@ -157,13 +170,13 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
 
         <h2 className="mt-3 font-display text-2xl sm:text-3xl font-bold text-slate-900 text-balance">
           {isFinal
-            ? 'Barão Raposão Derrotado!'
+            ? 'Família Reunida com a Liz!'
             : `Filhotinho ${world.babyName} Resgatado!`}
         </h2>
 
         <p className="mt-1.5 text-sm sm:text-base font-bold text-emerald-600">
           {isFinal
-            ? 'Todos os 8 filhotinhos da Pipoca estão salvos e juntos novamente!'
+            ? 'Pipoca, Papai Oswaldão e todos os 8 filhotinhos agora estão salvos e prontos para se juntar à Liz!'
             : `Você venceu ${world.boss.name} e salvou ${world.babyName}!`}
         </p>
 
@@ -269,7 +282,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   onStageMap,
 }) => (
   <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/70 p-4">
-    <div className="w-full max-w-md rounded-3xl border-4 border-white bg-white p-6 text-center text-slate-900 shadow-2xl">
+    <div className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-3xl border-4 border-white bg-white p-6 text-center text-slate-900 shadow-2xl">
       <h2 className="font-display text-2xl font-bold text-slate-900">
         Hora de Descansar um Pouquinho!
       </h2>
