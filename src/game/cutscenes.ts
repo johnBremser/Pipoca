@@ -302,28 +302,202 @@ export const POST_BOSS_CUTSCENES: Record<number, PostBossCutscene> = {
   },
 };
 
-export function speakPortuguese(text: string, enabled: boolean, pitch = 1.05) {
+export type VoiceRole = 'pipoca' | 'baby' | 'oswaldao' | 'boss';
+
+const MALE_VOICE_RE =
+  /\b(male|masculin\w*|homem|man|daniel|ant[oô]nio|f[aá]bio|humberto|j[uú]lio|nicolau|val[eé]rio|donato|duarte|felipe|eddy|reed|rocko|grandpa|cristiano|joaquim|tiago|thiago|carlos|rafael|pedro|lucas|gabriel|henrique|bruno|marcos|paulo|ricardo)\b|#male|pt-br-x-pte/i;
+
+const FEMALE_VOICE_RE =
+  /\b(female|feminin\w*|mulher|woman|maria|francisca|luciana|brenda|elza|giovanna|leila|let[ií]cia|manuela|thalita|yara|raquel|fernanda|joana|catarina|in[eê]s|flo|sandy|shelley|grandma|camila|vit[oó]ria|helena|sofia|clara|ana)\b|#female|pt-br-x-afs|pt-br-x-ptd/i;
+
+let cachedVoices: SpeechSynthesisVoice[] = [];
+let pendingSpeechCleanup: (() => void) | null = null;
+
+function refreshVoices(): SpeechSynthesisVoice[] {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    return [];
+  }
+  const list = window.speechSynthesis.getVoices();
+  if (list.length > 0) {
+    cachedVoices = list;
+  }
+  return cachedVoices;
+}
+
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  refreshVoices();
+  window.speechSynthesis.addEventListener?.('voiceschanged', refreshVoices);
+}
+
+function getVoiceTag(v: SpeechSynthesisVoice): string {
+  return `${v.name} ${v.voiceURI}`.toLowerCase();
+}
+
+function pickPortugueseVoice(
+  voices: SpeechSynthesisVoice[],
+  desiredGender: 'female' | 'male'
+): {voice: SpeechSynthesisVoice | null; isConfirmedMatch: boolean} {
+  const ptBrVoices = voices.filter((v) =>
+    v.lang.toLowerCase().replace('_', '-').startsWith('pt-br')
+  );
+  const ptAnyVoices = voices.filter((v) =>
+    v.lang.toLowerCase().startsWith('pt')
+  );
+  const pool = ptBrVoices.length > 0 ? ptBrVoices : ptAnyVoices;
+
+  if (pool.length === 0) {
+    return {voice: null, isConfirmedMatch: false};
+  }
+
+  const isMale = (v: SpeechSynthesisVoice) => MALE_VOICE_RE.test(getVoiceTag(v));
+  const isFemale = (v: SpeechSynthesisVoice) =>
+    FEMALE_VOICE_RE.test(getVoiceTag(v)) && !isMale(v);
+
+  if (desiredGender === 'female') {
+    const exact =
+      ptBrVoices.find(isFemale) ??
+      ptAnyVoices.find(isFemale) ??
+      pool.find((v) => !isMale(v));
+    if (exact) {
+      return {voice: exact, isConfirmedMatch: true};
+    }
+    return {voice: pool[0], isConfirmedMatch: false};
+  }
+
+  // Male voice selection (Oswaldão & Bosses)
+  const exactMale = ptBrVoices.find(isMale) ?? ptAnyVoices.find(isMale);
+  if (exactMale) {
+    return {voice: exactMale, isConfirmedMatch: true};
+  }
+
+  // If no explicit male label exists, prefer a distinct second PT voice if available
+  const femaleDefault = ptBrVoices.find(isFemale) ?? pool[0];
+  const alternate = pool.find((v) => v !== femaleDefault && !isFemale(v));
+  if (alternate) {
+    return {voice: alternate, isConfirmedMatch: false};
+  }
+
+  return {voice: pool[0], isConfirmedMatch: false};
+}
+
+function getProsodyForRole(
+  role: VoiceRole,
+  isConfirmedMale: boolean,
+  stageId = 1
+): {pitch: number; rate: number} {
+  if (role === 'pipoca') {
+    return {pitch: 1.2, rate: 1.03};
+  }
+  if (role === 'baby') {
+    return {pitch: 1.58, rate: 1.12};
+  }
+  if (role === 'oswaldao') {
+    return isConfirmedMale
+      ? {pitch: 0.86, rate: 0.94}
+      : {pitch: 0.54, rate: 0.9};
+  }
+
+  // Bosses: distinct masculine cartoon character tones per stage (1..8)
+  const bossProfilesConfirmed: Record<number, {pitch: number; rate: number}> = {
+    1: {pitch: 0.72, rate: 0.88}, // Rei Jacaré Soneca (sonolento e grave)
+    2: {pitch: 0.92, rate: 1.02}, // Corujão Maestro (teatral)
+    3: {pitch: 0.84, rate: 0.96}, // Polvo Bolha-Bolha
+    4: {pitch: 0.76, rate: 0.98}, // Trator Maluco (ronco forte)
+    5: {pitch: 0.8, rate: 1.04},  // Tatu-Rei Metálico (agitado)
+    6: {pitch: 0.88, rate: 0.95}, // Nuvem Trovão Birrenta
+    7: {pitch: 0.94, rate: 1.06}, // Robô-Caixa Surpresa (robótico rápido)
+    8: {pitch: 0.78, rate: 0.94}, // Barão Raposão (vilão clássico)
+  };
+
+  const bossProfilesFallback: Record<number, {pitch: number; rate: number}> = {
+    1: {pitch: 0.42, rate: 0.86},
+    2: {pitch: 0.58, rate: 1.0},
+    3: {pitch: 0.52, rate: 0.94},
+    4: {pitch: 0.45, rate: 0.96},
+    5: {pitch: 0.5, rate: 1.02},
+    6: {pitch: 0.56, rate: 0.94},
+    7: {pitch: 0.6, rate: 1.05},
+    8: {pitch: 0.46, rate: 0.92},
+  };
+
+  return isConfirmedMale
+    ? bossProfilesConfirmed[stageId] ?? {pitch: 0.82, rate: 0.96}
+    : bossProfilesFallback[stageId] ?? {pitch: 0.48, rate: 0.94};
+}
+
+export function speakPortuguese(
+  text: string,
+  enabled: boolean,
+  role: VoiceRole = 'pipoca',
+  stageId = 1
+) {
+  stopPortugueseSpeech();
   if (!enabled || typeof window === 'undefined' || !('speechSynthesis' in window)) {
     return;
   }
-  try {
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'pt-BR';
-    utter.rate = 1.02;
-    utter.pitch = pitch;
-    const voices = window.speechSynthesis.getVoices();
-    const ptVoice =
-      voices.find((v) => v.lang.toLowerCase().startsWith('pt-br')) ??
-      voices.find((v) => v.lang.toLowerCase().startsWith('pt'));
-    if (ptVoice) utter.voice = ptVoice;
-    window.speechSynthesis.speak(utter);
-  } catch {
-    // Ignore speech synthesis errors on restricted browsers
+
+  const doSpeak = (voices: SpeechSynthesisVoice[]) => {
+    try {
+      window.speechSynthesis.cancel();
+      const desiredGender =
+        role === 'oswaldao' || role === 'boss' ? 'male' : 'female';
+      const {voice, isConfirmedMatch} = pickPortugueseVoice(
+        voices,
+        desiredGender
+      );
+      const {pitch, rate} = getProsodyForRole(
+        role,
+        desiredGender === 'male' && isConfirmedMatch,
+        stageId
+      );
+
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = voice?.lang || 'pt-BR';
+      utter.pitch = pitch;
+      utter.rate = rate;
+      if (voice) {
+        utter.voice = voice;
+      }
+      window.speechSynthesis.speak(utter);
+    } catch {
+      // Ignore speech synthesis errors on restricted browsers
+    }
+  };
+
+  const voices = refreshVoices();
+  if (voices.length > 0) {
+    doSpeak(voices);
+    return;
   }
+
+  // Wait briefly on first load if browser hasn't populated voices yet
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    cleanup();
+    doSpeak(refreshVoices());
+  };
+  const onVoicesChanged = () => finish();
+  const timerId = window.setTimeout(finish, 260);
+  const cleanup = () => {
+    window.clearTimeout(timerId);
+    window.speechSynthesis.removeEventListener?.(
+      'voiceschanged',
+      onVoicesChanged
+    );
+    if (pendingSpeechCleanup === cleanup) {
+      pendingSpeechCleanup = null;
+    }
+  };
+  pendingSpeechCleanup = cleanup;
+  window.speechSynthesis.addEventListener?.('voiceschanged', onVoicesChanged);
 }
 
 export function stopPortugueseSpeech() {
+  if (pendingSpeechCleanup) {
+    pendingSpeechCleanup();
+  }
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     try {
       window.speechSynthesis.cancel();

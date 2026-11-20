@@ -35,17 +35,14 @@ export const PostBossCutscene: React.FC<PostBossCutsceneProps> = ({
   const isFinale = world.id === 8;
 
   useEffect(() => {
-    const pitch =
-      currentStep.speaker === 'baby'
-        ? 1.35
-        : currentStep.speaker === 'oswaldao'
-        ? 0.78
-        : currentStep.speaker === 'boss'
-        ? 0.88
-        : 1.1;
-    speakPortuguese(currentStep.text, voiceEnabled, pitch);
+    speakPortuguese(
+      currentStep.text,
+      voiceEnabled,
+      currentStep.speaker,
+      world.id
+    );
     return () => stopPortugueseSpeech();
-  }, [currentStep.speaker, currentStep.text, stepIdx, voiceEnabled]);
+  }, [currentStep.speaker, currentStep.text, stepIdx, voiceEnabled, world.id]);
 
   const handleNext = () => {
     soundEngine.unlock();
